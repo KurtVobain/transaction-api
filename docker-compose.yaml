@@ -15,7 +15,7 @@ services:
 
   web:
     build: .
-    command: gunicorn transactions.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn transactions.wsgi:application --bind 0.0.0.0:8000 --timeout 60 --workers 2 --worker-class sync --max-requests 1000 --max-requests-jitter 100
     volumes:
       - .:/app
     ports:

@@ -19,4 +19,4 @@ COPY . /app/
 # Expose port
 EXPOSE 8000
 
-CMD ["gunicorn", "transactions.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "transactions.wsgi:application", "--bind", "0.0.0.0:8000", "--timeout", "60", "--workers", "2", "--worker-class", "sync", "--max-requests", "1000", "--max-requests-jitter", "100"]

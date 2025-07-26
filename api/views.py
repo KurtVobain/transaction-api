@@ -2,7 +2,7 @@ from django.db import transaction, IntegrityError
 from rest_framework import generics, serializers, filters
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .filters import WalletFilter
+from .filters import WalletFilter, TransactionFilter
 from .models import Transaction, Wallet
 from .serializers import TransactionSerializer, WalletSerializer
 
@@ -39,3 +39,12 @@ class WalletListView(generics.ListAPIView):
     filterset_class = WalletFilter
     ordering_fields = ['id', 'label', 'balance']
     search_fields = ['label']
+
+
+class TransactionListView(generics.ListAPIView):
+    queryset = Transaction.objects.select_related('wallet').all()
+    serializer_class = TransactionSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_class = TransactionFilter
+    ordering_fields = ['id', 'txid', 'amount', 'wallet__id']
+    search_fields = ['txid']
