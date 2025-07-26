@@ -1,8 +1,10 @@
-from django.urls import path
-from .views import TransactionCreateView, WalletListView, TransactionListView
+from .views import (TransactionViewSet, WalletViewSet)
 
-urlpatterns = [
-    path('transactions/', TransactionCreateView.as_view(), name='create-transaction'),
-    path('transactions/list/', TransactionListView.as_view(), name='transaction-list'),
-    path('wallets/', WalletListView.as_view(), name='wallet-list'),
-]
+from rest_framework.routers import DefaultRouter
+from .views import WalletViewSet, TransactionViewSet
+
+router = DefaultRouter()
+router.register('wallets', WalletViewSet)
+router.register('transactions', TransactionViewSet)
+
+urlpatterns = router.urls
