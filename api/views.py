@@ -1,7 +1,10 @@
 from django.db import transaction, IntegrityError
-from rest_framework import generics, serializers
+from rest_framework import generics, serializers, filters
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .filters import WalletFilter
 from .models import Transaction, Wallet
-from .serializers import TransactionSerializer
+from .serializers import TransactionSerializer, WalletSerializer
 
 class TransactionCreateView(generics.CreateAPIView):
     queryset = Transaction.objects.all()
@@ -26,3 +29,13 @@ class TransactionCreateView(generics.CreateAPIView):
                 serializer.save(wallet=wallet)
             except IntegrityError:
                 raise serializers.ValidationError({'txid': 'Duplicate txid.'})
+
+
+class WalletListView(generics.ListAPIView):
+    queryset = Wallet.objects.all()
+    serializer_class = WalletSerializer
+
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_class = WalletFilter
+    ordering_fields = ['id', 'label', 'balance']
+    search_fields = ['label']

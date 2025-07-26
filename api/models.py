@@ -14,6 +14,7 @@ class Wallet(models.Model):
     )
     
     class Meta:
+        ordering = ['id']
         indexes = [
             models.Index(fields=['label']),
         ]
@@ -28,6 +29,7 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=18)
     
     class Meta:
+        ordering = ['id']
         indexes = [
             models.Index(fields=['txid']),
             models.Index(fields=['wallet']),
