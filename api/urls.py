@@ -1,5 +1,6 @@
 from django.urls import path
+from .views import TransactionCreateView
 
 urlpatterns = [
-    # Add your API endpoints here
-] 
+    path('transactions/', TransactionCreateView.as_view(), name='create-transaction'),
+]
