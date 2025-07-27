@@ -1,21 +1,42 @@
-from rest_framework import serializers
+from rest_framework_json_api import serializers
+from rest_framework_json_api.relations import ResourceRelatedField
 from .models import Wallet, Transaction
 
 
 class WalletSerializer(serializers.ModelSerializer):
+    transactions = ResourceRelatedField(
+        many=True,
+        read_only=True
+    )
+
     class Meta:
         model = Wallet
-        fields = ['id', 'label', 'balance']
+        fields = ['id', 'label', 'balance', 'transactions']
+
+    class JSONAPIMeta:
+        included_resources = ['transactions']
+
+    included_serializers = {
+        'transactions': 'api.serializers.TransactionSerializer',
+    }
 
 
 class TransactionSerializer(serializers.ModelSerializer):
     wallet_id = serializers.IntegerField(write_only=True)
-    wallet = serializers.PrimaryKeyRelatedField(read_only=True)
+    wallet = ResourceRelatedField(
+        read_only=True
+    )
 
     class Meta:
         model = Transaction
-        fields = ['wallet_id', 'wallet', 'amount', 'txid']
-        read_only_fields = ['wallet']
+        fields = ['id', 'wallet_id', 'wallet', 'amount', 'txid']
+
+    class JSONAPIMeta:
+        included_resources = ['wallet']
+
+    included_serializers = {
+        'wallet': 'api.serializers.WalletSerializer',
+    }
 
     def validate_wallet_id(self, value):
         if not Wallet.objects.filter(id=value).exists():
