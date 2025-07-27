@@ -47,6 +47,22 @@ Example response:
 }
 ```
 
+#### cURL examples
+```bash
+# List wallets
+curl -H "Accept: application/vnd.api+json" \
+  http://localhost:8000/wallets/
+
+# Retrieve a single wallet
+curl -H "Accept: application/vnd.api+json" \
+  http://localhost:8000/wallets/1/
+
+# Create a wallet
+curl -X POST -H "Content-Type: application/vnd.api+json" \
+  -d '{"data": {"type": "Wallet", "attributes": {"label": "My Wallet", "balance": "10.00"}}}' \
+  http://localhost:8000/wallets/
+```
+
 ### `/transactions/`
 * `GET /transactions/` – list transactions with optional pagination, ordering and filtering.
 * `POST /transactions/` – create a transaction and update the wallet balance atomically.
@@ -86,6 +102,22 @@ Example response:
   "txid": "ABC123",
   "amount": "-5.000000000000000000"
 }
+```
+
+#### cURL examples
+```bash
+# List transactions
+curl -H "Accept: application/vnd.api+json" \
+  http://localhost:8000/transactions/
+
+# Retrieve a single transaction
+curl -H "Accept: application/vnd.api+json" \
+  http://localhost:8000/transactions/1/
+
+# Create a transaction
+curl -X POST -H "Content-Type: application/vnd.api+json" \
+  -d '{"data": {"type": "Transaction", "attributes": {"wallet_id": 1, "txid": "ABC123", "amount": "-5.00"}}}' \
+  http://localhost:8000/transactions/
 ```
 
 ### Pagination, sorting and filtering
