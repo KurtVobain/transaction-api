@@ -4,6 +4,7 @@ from faker import Faker
 from django.core.management.base import BaseCommand
 from api.models import Wallet
 
+
 class Command(BaseCommand):
     help = 'Seed random wallets into the database'
 

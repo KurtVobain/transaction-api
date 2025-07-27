@@ -19,7 +19,7 @@ from ..models import Wallet
 
 class WalletListAPITestCase(APITestCase):
     """Test cases for wallet list API endpoint (GET /wallets/)."""
-    
+
     def setUp(self):
         """Create test data for wallet tests."""
         self.wallet1 = Wallet.objects.create(
@@ -60,10 +60,10 @@ class WalletListAPITestCase(APITestCase):
         """Test filtering wallets by minimum balance."""
         url = f"{self.url}?balance_min=60"  # Use 'balance_min' directly
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return wallets with balance >= 60
         self.assertEqual(len(data), 2)  # wallet1 and wallet4
         for wallet in data:
@@ -73,10 +73,10 @@ class WalletListAPITestCase(APITestCase):
         """Test filtering wallets by maximum balance."""
         url = f"{self.url}?balance_max=60"  # Use 'balance_max' directly
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return wallets with balance <= 60
         self.assertEqual(len(data), 2)  # wallet2 and wallet3
         for wallet in data:
@@ -86,10 +86,10 @@ class WalletListAPITestCase(APITestCase):
         """Test filtering wallets by balance range."""
         url = f"{self.url}?balance_min=40&balance_max=90"  # Use direct parameter names
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return wallets with 40 <= balance <= 90
         self.assertEqual(len(data), 2)  # wallet2 and wallet4
         for wallet in data:
@@ -101,10 +101,10 @@ class WalletListAPITestCase(APITestCase):
         """Test search functionality for wallets."""
         url = f"{self.url}?filter[search]=Test%20Wallet%201"  # Use 'filter[search]' as configured in settings
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return only "Test Wallet 1"
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['label'], 'Test Wallet 1')
@@ -113,10 +113,10 @@ class WalletListAPITestCase(APITestCase):
         """Test ordering wallets by ID ascending."""
         url = f"{self.url}?sort=id"
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         ids = [int(wallet['id']) for wallet in data]
         self.assertEqual(ids, sorted(ids))
 
@@ -124,10 +124,10 @@ class WalletListAPITestCase(APITestCase):
         """Test ordering wallets by ID descending."""
         url = f"{self.url}?sort=-id"
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         ids = [int(wallet['id']) for wallet in data]
         self.assertEqual(ids, sorted(ids, reverse=True))
 
@@ -135,10 +135,10 @@ class WalletListAPITestCase(APITestCase):
         """Test ordering wallets by balance ascending."""
         url = f"{self.url}?sort=balance"
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         balances = [Decimal(wallet['balance']) for wallet in data]
         self.assertEqual(balances, sorted(balances))
 
@@ -146,10 +146,10 @@ class WalletListAPITestCase(APITestCase):
         """Test ordering wallets by balance descending."""
         url = f"{self.url}?sort=-balance"
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         balances = [Decimal(wallet['balance']) for wallet in data]
         self.assertEqual(balances, sorted(balances, reverse=True))
 
@@ -157,22 +157,22 @@ class WalletListAPITestCase(APITestCase):
         """Test combining filtering and ordering."""
         url = f"{self.url}?balance_min=40&sort=-balance"  # Use 'balance_min' directly
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should have 3 wallets with balance >= 40, ordered by balance desc
         self.assertEqual(len(data), 3)
         for wallet in data:
             self.assertGreaterEqual(Decimal(wallet['balance']), 40)
-        
+
         balances = [Decimal(wallet['balance']) for wallet in data]
         self.assertEqual(balances, sorted(balances, reverse=True))
 
 
 class WalletDetailAPITestCase(APITestCase):
     """Test cases for wallet detail API endpoint (GET /wallets/{id}/)."""
-    
+
     def setUp(self):
         """Create test data for wallet detail tests."""
         self.wallet = Wallet.objects.create(
@@ -184,7 +184,7 @@ class WalletDetailAPITestCase(APITestCase):
     def test_get_wallet_detail(self):
         """Test retrieving a specific wallet."""
         response = self.client.get(self.url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['label'], 'Detail Test Wallet')
         self.assertEqual(response.data['balance'], '75.250000000000000000')
@@ -194,13 +194,13 @@ class WalletDetailAPITestCase(APITestCase):
         """Test retrieving a non-existent wallet returns 404."""
         url = reverse('wallet-detail', kwargs={'pk': 99999})
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class WalletCreateAPITestCase(APITestCase):
     """Test cases for wallet creation API endpoint (POST /wallets/)."""
-    
+
     def setUp(self):
         """Create test data for wallet creation tests."""
         self.url = reverse('wallet-list')
@@ -222,12 +222,12 @@ class WalletCreateAPITestCase(APITestCase):
         """Test successful wallet creation with valid data."""
         data = self._format_jsonapi_data(self.valid_wallet_data)
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['label'], 'New Test Wallet')
         self.assertEqual(response.data['balance'], '50.250000000000000000')
         self.assertIn('id', response.data)
-        
+
         # Verify wallet was actually created in database
         self.assertTrue(Wallet.objects.filter(label='New Test Wallet').exists())
 
@@ -235,7 +235,7 @@ class WalletCreateAPITestCase(APITestCase):
         """Test wallet creation without specifying balance defaults to 0."""
         data = self._format_jsonapi_data({'label': 'Default Balance Wallet'})
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['label'], 'Default Balance Wallet')
         self.assertEqual(response.data['balance'], '0.000000000000000000')
@@ -247,7 +247,7 @@ class WalletCreateAPITestCase(APITestCase):
             'balance': '0.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['balance'], '0.000000000000000000')  # Fixed expected value
 
@@ -258,7 +258,7 @@ class WalletCreateAPITestCase(APITestCase):
             'balance': '99.999999999999999999'  # Maximum for decimal(20,18)
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['balance'], '99.999999999999999999')
 
@@ -266,14 +266,14 @@ class WalletCreateAPITestCase(APITestCase):
         """Test that wallet creation response has correct structure."""
         data = self._format_jsonapi_data(self.valid_wallet_data)
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Verify required fields are present
         required_fields = ['id', 'label', 'balance']
         for field in required_fields:
             self.assertIn(field, response.data)
-        
+
         # Note: In some JSON:API configurations, ID might be returned as integer
         # We'll accept either format
         self.assertTrue(isinstance(response.data['id'], (str, int)))
@@ -285,9 +285,9 @@ class WalletCreateAPITestCase(APITestCase):
             'balance': '33.44'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Fetch from database and verify
         wallet = Wallet.objects.get(label='Persistence Test')
         self.assertEqual(wallet.balance, Decimal('33.44'))
@@ -299,20 +299,20 @@ class WalletCreateAPITestCase(APITestCase):
             'label': 'Duplicate Label Test',
             'balance': '10.00'
         })
-        
+
         response1 = self.client.post(self.url, data, content_type='application/vnd.api+json')
         response2 = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-        
+
         # Verify both wallets exist
         self.assertEqual(Wallet.objects.filter(label='Duplicate Label Test').count(), 2)
 
 
 class WalletCreateValidationTestCase(APITestCase):
     """Test cases for wallet creation validation errors."""
-    
+
     def setUp(self):
         """Create test data for validation tests."""
         self.url = reverse('wallet-list')
@@ -332,7 +332,7 @@ class WalletCreateValidationTestCase(APITestCase):
             'balance': '50.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # JSON:API error format - check if error contains label info
         self.assertTrue(any('label' in str(error) for error in response.data))
@@ -344,7 +344,7 @@ class WalletCreateValidationTestCase(APITestCase):
             'balance': '50.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('label' in str(error) for error in response.data))
 
@@ -355,7 +355,7 @@ class WalletCreateValidationTestCase(APITestCase):
             'balance': '50.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('label' in str(error) for error in response.data))
 
@@ -366,7 +366,7 @@ class WalletCreateValidationTestCase(APITestCase):
             'balance': '-10.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('balance' in str(error) for error in response.data))
 
@@ -377,7 +377,7 @@ class WalletCreateValidationTestCase(APITestCase):
             'balance': '99.1234567890123456789'  # 21 digits total
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('balance' in str(error) for error in response.data))
 
@@ -388,6 +388,6 @@ class WalletCreateValidationTestCase(APITestCase):
             'balance': 'not_a_number'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(any('balance' in str(error) for error in response.data)) 
+        self.assertTrue(any('balance' in str(error) for error in response.data))

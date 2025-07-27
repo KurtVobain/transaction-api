@@ -17,7 +17,7 @@ class TransactionViewSet(ModelViewSet):
     filterset_class = TransactionFilter
     ordering_fields = ['id', 'txid', 'amount', 'wallet__id']
     search_fields = ['txid']
-    
+
     # Configure prefetching for included resources
     select_for_includes = {
         'wallet': ['wallet'],
@@ -51,7 +51,7 @@ class WalletViewSet(ModelViewSet):
     filterset_class = WalletFilter
     ordering_fields = ['id', 'label', 'balance']
     search_fields = ['label']
-    
+
     # Configure prefetching for included resources
     prefetch_for_includes = {
         'transactions': ['transactions'],

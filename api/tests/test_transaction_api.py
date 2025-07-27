@@ -17,19 +17,19 @@ from ..models import Transaction, Wallet
 
 class TransactionListAPITestCase(APITestCase):
     """Test cases for transaction list API endpoint (GET /transactions/)."""
-    
+
     def setUp(self):
         """Create test data for transaction tests."""
         # Create wallets for testing - keep balances under 100 due to decimal field constraints
         self.wallet1 = Wallet.objects.create(
-            label="Test Wallet 1", 
+            label="Test Wallet 1",
             balance=Decimal('50.00')
         )
         self.wallet2 = Wallet.objects.create(
-            label="Test Wallet 2", 
+            label="Test Wallet 2",
             balance=Decimal('80.00')
         )
-        
+
         # Create transactions for testing
         self.transaction1 = Transaction.objects.create(
             wallet=self.wallet1,
@@ -38,7 +38,7 @@ class TransactionListAPITestCase(APITestCase):
         )
         self.transaction2 = Transaction.objects.create(
             wallet=self.wallet1,
-            txid="TX002", 
+            txid="TX002",
             amount=Decimal('-10.25')
         )
         self.transaction3 = Transaction.objects.create(
@@ -51,17 +51,17 @@ class TransactionListAPITestCase(APITestCase):
             txid="REFUND001",
             amount=Decimal('-5.50')
         )
-        
+
         self.url = reverse('transaction-list')
 
     def test_get_transaction_list(self):
         """Test basic transaction list retrieval."""
         response = self.client.get(self.url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
         self.assertEqual(len(data), 4)
-        
+
         # Verify response structure - JSON:API format
         transaction_data = data[0]
         self.assertIn('id', transaction_data)
@@ -73,11 +73,11 @@ class TransactionListAPITestCase(APITestCase):
         """Test filtering transactions by wallet ID."""
         url = f"{self.url}?wallet={self.wallet1.id}"  # Use 'wallet' instead of 'filter[wallet_id]'
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
         self.assertEqual(len(data), 2)
-        
+
         # Verify all transactions belong to wallet1
         for transaction in data:
             self.assertEqual(transaction['wallet']['id'], str(self.wallet1.id))
@@ -86,10 +86,10 @@ class TransactionListAPITestCase(APITestCase):
         """Test filtering transactions by minimum amount."""
         url = f"{self.url}?amount_min=10"  # Use 'amount_min' directly
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return 2 transactions with amount >= 10
         self.assertEqual(len(data), 2)
         for transaction in data:
@@ -99,10 +99,10 @@ class TransactionListAPITestCase(APITestCase):
         """Test filtering transactions by maximum amount."""
         url = f"{self.url}?amount_max=20"  # Use 'amount_max' directly
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return transactions with amount <= 20
         self.assertEqual(len(data), 3)
         for transaction in data:
@@ -112,10 +112,10 @@ class TransactionListAPITestCase(APITestCase):
         """Test filtering transactions by amount range."""
         url = f"{self.url}?amount_min=0&amount_max=20"  # Use direct parameter names
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return transactions with 0 <= amount <= 20
         self.assertEqual(len(data), 1)  # Only PAYMENT001 with amount 15.00
         self.assertEqual(data[0]['txid'], 'PAYMENT001')
@@ -124,10 +124,10 @@ class TransactionListAPITestCase(APITestCase):
         """Test search functionality for transactions."""
         url = f"{self.url}?filter[search]=TX001"  # Use 'filter[search]' as configured in settings
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should return only TX001
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['txid'], 'TX001')
@@ -136,10 +136,10 @@ class TransactionListAPITestCase(APITestCase):
         """Test ordering transactions by amount ascending."""
         url = f"{self.url}?sort=amount"
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         amounts = [Decimal(t['amount']) for t in data]
         self.assertEqual(amounts, sorted(amounts))
 
@@ -147,10 +147,10 @@ class TransactionListAPITestCase(APITestCase):
         """Test ordering transactions by amount descending."""
         url = f"{self.url}?sort=-amount"
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         amounts = [Decimal(t['amount']) for t in data]
         self.assertEqual(amounts, sorted(amounts, reverse=True))
 
@@ -158,10 +158,10 @@ class TransactionListAPITestCase(APITestCase):
         """Test ordering transactions by txid ascending."""
         url = f"{self.url}?sort=txid"
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         txids = [t['txid'] for t in data]
         self.assertEqual(txids, sorted(txids))
 
@@ -169,22 +169,22 @@ class TransactionListAPITestCase(APITestCase):
         """Test combining filtering and ordering."""
         url = f"{self.url}?wallet={self.wallet1.id}&sort=-amount"  # Use 'wallet' instead of 'filter[wallet_id]'
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data.get('results', response.data)
-        
+
         # Should have 2 transactions from wallet1, ordered by amount desc
         self.assertEqual(len(data), 2)
         for transaction in data:
             self.assertEqual(transaction['wallet']['id'], str(self.wallet1.id))
-        
+
         amounts = [Decimal(t['amount']) for t in data]
         self.assertEqual(amounts, sorted(amounts, reverse=True))
 
 
 class TransactionDetailAPITestCase(APITestCase):
     """Test cases for transaction detail API endpoint (GET /transactions/{id}/)."""
-    
+
     def setUp(self):
         """Create test data for transaction detail tests."""
         self.wallet = Wallet.objects.create(
@@ -201,7 +201,7 @@ class TransactionDetailAPITestCase(APITestCase):
     def test_get_transaction_detail(self):
         """Test retrieving a specific transaction."""
         response = self.client.get(self.url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['txid'], 'DETAIL_TEST')
         self.assertEqual(response.data['amount'], '25.250000000000000000')
@@ -211,13 +211,13 @@ class TransactionDetailAPITestCase(APITestCase):
         """Test retrieving a non-existent transaction returns 404."""
         url = reverse('transaction-detail', kwargs={'pk': 99999})
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class TransactionCreateAPITestCase(APITestCase):
     """Test cases for transaction creation API endpoint (POST /transactions/)."""
-    
+
     def setUp(self):
         """Create test data for transaction creation tests."""
         self.wallet = Wallet.objects.create(
@@ -244,16 +244,16 @@ class TransactionCreateAPITestCase(APITestCase):
             'amount': '25.50'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['txid'], 'CREDIT001')
         self.assertEqual(response.data['amount'], '25.500000000000000000')
         self.assertEqual(response.data['wallet']['id'], str(self.wallet.id))
-        
+
         # Verify wallet balance increased
         self.wallet.refresh_from_db()
         self.assertEqual(self.wallet.balance, initial_balance + Decimal('25.50'))
-        
+
         # Verify transaction exists in database
         self.assertTrue(Transaction.objects.filter(txid='CREDIT001').exists())
 
@@ -266,10 +266,10 @@ class TransactionCreateAPITestCase(APITestCase):
             'amount': '-30.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['amount'], '-30.000000000000000000')
-        
+
         # Verify wallet balance decreased
         self.wallet.refresh_from_db()
         self.assertEqual(self.wallet.balance, initial_balance - Decimal('30.00'))
@@ -283,10 +283,10 @@ class TransactionCreateAPITestCase(APITestCase):
             'amount': '0.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['amount'], '0.000000000000000000')  # Fixed expected format
-        
+
         # Verify wallet balance unchanged
         self.wallet.refresh_from_db()
         self.assertEqual(self.wallet.balance, initial_balance)
@@ -299,14 +299,14 @@ class TransactionCreateAPITestCase(APITestCase):
             'amount': '15.75'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Verify required fields are present
         required_fields = ['id', 'txid', 'amount', 'wallet']
         for field in required_fields:
             self.assertIn(field, response.data)
-        
+
         # Note: In some JSON:API configurations, ID might be returned as integer
         # We'll accept either format
         self.assertTrue(isinstance(response.data['id'], (str, int)))
@@ -319,9 +319,9 @@ class TransactionCreateAPITestCase(APITestCase):
             'amount': '42.25'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Fetch from database and verify
         transaction = Transaction.objects.get(txid='PERSIST_TEST')
         self.assertEqual(transaction.wallet.id, self.wallet.id)
@@ -331,7 +331,7 @@ class TransactionCreateAPITestCase(APITestCase):
 
 class TransactionCreateValidationTestCase(APITestCase):
     """Test cases for transaction creation validation errors."""
-    
+
     def setUp(self):
         """Create test data for validation tests."""
         self.wallet = Wallet.objects.create(
@@ -361,7 +361,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': '10.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # JSON:API error format - check if error contains wallet_id info
         self.assertTrue(any('wallet_id' in str(error) for error in response.data))
@@ -373,7 +373,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': '10.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('txid' in str(error) for error in response.data))
 
@@ -384,7 +384,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'txid': 'MISSING_AMOUNT'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('amount' in str(error) for error in response.data))
 
@@ -396,7 +396,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': '10.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('wallet_id' in str(error) or 'Wallet' in str(error) for error in response.data))
 
@@ -408,7 +408,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': '20.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('txid' in str(error) or 'Duplicate' in str(error) for error in response.data))
 
@@ -420,7 +420,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': '-60.00'  # Wallet only has 50.00, this would overdraft
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('funds' in str(error) or 'amount' in str(error) for error in response.data))
 
@@ -432,7 +432,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': 'not_a_number'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('amount' in str(error) for error in response.data))
 
@@ -444,7 +444,7 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': '10.00'
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(any('txid' in str(error) for error in response.data))
 
@@ -457,6 +457,6 @@ class TransactionCreateValidationTestCase(APITestCase):
             'amount': '99.1234567890123456789'  # 21 digits total
         })
         response = self.client.post(self.url, data, content_type='application/vnd.api+json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(any('amount' in str(error) for error in response.data)) 
+        self.assertTrue(any('amount' in str(error) for error in response.data))

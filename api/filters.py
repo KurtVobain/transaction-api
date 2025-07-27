@@ -1,6 +1,7 @@
 import django_filters
 from .models import Wallet, Transaction
 
+
 class WalletFilter(django_filters.FilterSet):
     balance_min = django_filters.NumberFilter(field_name='balance', lookup_expr='gte')
     balance_max = django_filters.NumberFilter(field_name='balance', lookup_expr='lte')
@@ -9,6 +10,7 @@ class WalletFilter(django_filters.FilterSet):
     class Meta:
         model = Wallet
         fields = ['label', 'label_contains', 'balance_min', 'balance_max']
+
 
 class TransactionFilter(django_filters.FilterSet):
     amount_min = django_filters.NumberFilter(field_name='amount', lookup_expr='gte')
