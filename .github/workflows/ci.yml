@@ -28,6 +28,7 @@ jobs:
 
     env:
       # point Django’s DATABASES['default'] at the service
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
       DATABASE_URL: postgres://postgres:password@localhost:5432/test_db
       # disable collecting static files or debugging concerns
       DEBUG: "False"
